@@ -1,0 +1,506 @@
+=============================================================================
+
+                UNIVERSITY COURSE MANAGEMENT SYSTEM
+                       FINAL SQL PROJECT
+
+=============================================================================
+PROJECT OVERVIEW
+=============================================================================
+This project manages university students, courses, instructors,
+enrollments, and departments.
+
+Tables:
+1. Students
+2. Courses
+3. Instructors
+4. Enrollments
+5. Departments
+
+
+=============================================================================
+QUESTION 1: PERFORM CRUD OPERATIONS ON ALL TABLES
+=============================================================================
+
+A) CREATE (INSERT) - example for each table
+
+INSERT INTO Students
+(StudentID, FirstName, LastName, Email, BirthDate, EnrollmentDate)
+VALUES (99, 'Test', 'Student', 'test.student@email.com',
+        '2000-01-01', '2025-01-01');
+
+INSERT INTO Courses (CourseID, CourseName, DepartmentID, Credits)
+VALUES (199, 'Test Course', 1, 3);
+
+INSERT INTO Instructors
+(InstructorID, FirstName, LastName, Email, DepartmentID, Salary)
+VALUES (99, 'Test', 'Instructor', 'test.instructor@univ.com', 1, 50000.00);
+
+INSERT INTO Enrollments
+(EnrollmentID, StudentID, CourseID, EnrollmentDate)
+VALUES (999, 99, 199, '2025-01-01');
+
+INSERT INTO Departments (DepartmentID, DepartmentName)
+VALUES (99, 'Temporary Department');
+
+MySQL-style output:
+Query OK, 1 row affected
+
+Note: For the Enrollments INSERT to work, StudentID 99 and CourseID 199
+must already exist. Insert the student and course first.
+
+B) READ (SELECT)
+
+SELECT * FROM Students;
+SELECT * FROM Courses;
+SELECT * FROM Instructors;
+SELECT * FROM Enrollments;
+SELECT * FROM Departments;
+
+Sample output for SELECT * FROM Students (first 5 rows shown):
++-----------+-----------+----------+---------------------------+------------+----------------+
+| StudentID | FirstName | LastName | Email                     | BirthDate  | EnrollmentDate |
++-----------+-----------+----------+---------------------------+------------+----------------+
+|         1 | John      | Doe      | john.doe@email.com        | 2000-01-15 | 2022-08-01     |
+|         2 | Jane      | Smith    | jane.smith@email.com      | 1999-05-25 | 2021-08-01     |
+|         3 | Michael   | Brown    | michael.brown@email.com   | 2002-03-12 | 2023-01-10     |
+|         4 | Emily     | Davis    | emily.davis@email.com     | 2001-11-08 | 2020-07-15     |
+|         5 | David     | Wilson   | david.wilson@email.com    | 2003-06-20 | 2024-08-01     |
++-----------+-----------+----------+---------------------------+------------+----------------+
+12 rows in set
+
+C) UPDATE
+
+UPDATE Students
+SET FirstName = 'Updated'
+WHERE StudentID = 99;
+
+UPDATE Courses
+SET Credits = 4
+WHERE CourseID = 199;
+
+UPDATE Instructors
+SET Salary = 55000.00
+WHERE InstructorID = 99;
+
+UPDATE Enrollments
+SET EnrollmentDate = '2025-02-01'
+WHERE EnrollmentID = 999;
+
+UPDATE Departments
+SET DepartmentName = 'Updated Temporary Department'
+WHERE DepartmentID = 99;
+
+MySQL-style output:
+Query OK, 1 row affected
+
+D) DELETE
+
+DELETE FROM Enrollments WHERE EnrollmentID = 999;
+DELETE FROM Instructors WHERE InstructorID = 99;
+DELETE FROM Courses WHERE CourseID = 199;
+DELETE FROM Students WHERE StudentID = 99;
+DELETE FROM Departments WHERE DepartmentID = 99;
+
+MySQL-style output:
+Query OK, 1 row affected
+
+Important: Foreign-key relationships mean dependent Enrollments should be
+deleted before deleting their related Students or Courses. The sample
+temporary IDs are examples; run INSERT/UPDATE/DELETE in a controlled order.
+
+=============================================================================
+QUESTION 2: RETRIEVE STUDENTS WHO ENROLLED AFTER 2022
+=============================================================================
+
+SQL Answer:
+SELECT *
+FROM Students
+WHERE EnrollmentDate >= '2023-01-01';
+
+MySQL-style output:
++-----------+-----------+----------+---------------------------+------------+----------------+
+| StudentID | FirstName | LastName | Email                     | BirthDate  | EnrollmentDate |
++-----------+-----------+----------+---------------------------+------------+----------------+
+|         3 | Michael   | Brown    | michael.brown@email.com   | 2002-03-12 | 2023-01-10     |
+|         5 | David     | Wilson   | david.wilson@email.com    | 2003-06-20 | 2024-08-01     |
+|         7 | Daniel    | Anderson | daniel.anderson@email.com | 2002-12-02 | 2023-08-01     |
+|         9 | James     | Jackson  | james.jackson@email.com   | 2003-02-14 | 2024-01-15     |
+|        12 | Ava       | Martin   | ava.martin@email.com      | 2003-08-09 | 2025-01-10     |
++-----------+-----------+----------+---------------------------+------------+----------------+
+5 rows in set
+
+=============================================================================
+QUESTION 3: MATHEMATICS DEPARTMENT COURSES, LIMIT 5
+=============================================================================
+
+SQL Answer:
+SELECT c.CourseID, c.CourseName, c.DepartmentID, c.Credits
+FROM Courses AS c
+JOIN Departments AS d ON d.DepartmentID = c.DepartmentID
+WHERE d.DepartmentName = 'Mathematics'
+ORDER BY c.CourseID
+LIMIT 5;
+
+MySQL-style output:
++----------+-----------------+--------------+---------+
+| CourseID | CourseName      | DepartmentID | Credits |
++----------+-----------------+--------------+---------+
+|      102 | Data Structures |            2 |       4 |
+|      104 | Calculus I      |            2 |       4 |
+|      106 | Statistics      |            2 |       3 |
++----------+-----------------+--------------+---------+
+3 rows in set (0.018 sec)
+
+=============================================================================
+QUESTION 4: COUNT STUDENTS IN EACH COURSE; SHOW MORE THAN 5
+=============================================================================
+
+SQL Answer:
+SELECT c.CourseID, c.CourseName, COUNT(e.StudentID) AS StudentCount
+FROM Courses AS c
+JOIN Enrollments AS e ON e.CourseID = c.CourseID
+GROUP BY c.CourseID, c.CourseName
+HAVING COUNT(e.StudentID) > 5;
+
+MySQL-style output:
+Empty set
+
+Explanation:
+No course in the sample data has more than 5 enrolled students.
+To view counts for all courses, remove the HAVING clause.
+
+Optional check:
+SELECT c.CourseID, c.CourseName, COUNT(e.StudentID) AS StudentCount
+FROM Courses c
+LEFT JOIN Enrollments e ON e.CourseID = c.CourseID
+GROUP BY c.CourseID, c.CourseName
+ORDER BY c.CourseID;
+
+MySQL-style output for optional check:
++----------+------------------------+--------------+
+| CourseID | CourseName             | StudentCount |
++----------+------------------------+--------------+
+|      101 | Introduction to SQL    |            6 |
+|      102 | Data Structures        |            4 |
+|      103 | Database Management    |            3 |
+|      104 | Calculus I             |            3 |
+|      105 | Business Communication |            2 |
+|      106 | Statistics             |            2 |
+|      107 | Physics Fundamentals   |            0 |
+|      108 | Advanced SQL           |            0 |
++----------+------------------------+--------------+
+8 rows in set (0.009 sec)
+
+=============================================================================
+QUESTION 5: STUDENTS ENROLLED IN BOTH INTRODUCTION TO SQL
+AND DATA STRUCTURES
+=============================================================================
+
+SQL Answer:
+SELECT s.StudentID, s.FirstName, s.LastName
+FROM Students AS s
+JOIN Enrollments AS e ON e.StudentID = s.StudentID
+JOIN Courses AS c ON c.CourseID = e.CourseID
+WHERE c.CourseName IN ('Introduction to SQL', 'Data Structures')
+GROUP BY s.StudentID, s.FirstName, s.LastName
+HAVING COUNT(DISTINCT c.CourseName) = 2;
+
+MySQL-style output:
++-----------+-----------+----------+
+| StudentID | FirstName | LastName |
++-----------+-----------+----------+
+|         1 | John      | Doe      |
+|         2 | Jane      | Smith    |
++-----------+-----------+----------+
+2 rows in set
+
+=============================================================================
+QUESTION 6: STUDENTS ENROLLED IN EITHER COURSE
+=============================================================================
+
+SQL Answer:
+SELECT DISTINCT s.StudentID, s.FirstName, s.LastName
+FROM Students AS s
+JOIN Enrollments AS e ON e.StudentID = s.StudentID
+JOIN Courses AS c ON c.CourseID = e.CourseID
+WHERE c.CourseName IN ('Introduction to SQL', 'Data Structures')
+ORDER BY s.StudentID;
+
+MySQL-style output:
++-----------+-----------+----------+
+| StudentID | FirstName | LastName |
++-----------+-----------+----------+
+|         1 | John      | Doe      |
+|         2 | Jane      | Smith    |
+|         3 | Michael   | Brown    |
+|         4 | Emily     | Davis    |
+|         6 | Sarah     | Taylor   |
+|         7 | Daniel    | Anderson |
++-----------+-----------+----------+
+6 rows in set
+
+=============================================================================
+QUESTION 7: AVERAGE NUMBER OF CREDITS FOR ALL COURSES
+=============================================================================
+
+SQL Answer:
+SELECT AVG(Credits) AS AverageCredits
+FROM Courses;
+
+MySQL-style output:
++----------------+
+| AverageCredits |
++----------------+
+|         3.5000 |
++----------------+
+1 row in set
+
+=============================================================================
+QUESTION 8: MAXIMUM INSTRUCTOR SALARY IN COMPUTER SCIENCE
+=============================================================================
+
+SQL Answer:
+SELECT MAX(i.Salary) AS MaximumSalary
+FROM Instructors AS i
+JOIN Departments AS d ON d.DepartmentID = i.DepartmentID
+WHERE d.DepartmentName = 'Computer Science';
+
+MySQL-style output:
++---------------+
+| MaximumSalary |
++---------------+
+|      81000.00 |
++---------------+
+1 row in set
+
+=============================================================================
+QUESTION 9: COUNT STUDENTS ENROLLED IN EACH DEPARTMENT
+=============================================================================
+
+SQL Answer:
+SELECT d.DepartmentID, d.DepartmentName,
+       COUNT(DISTINCT e.StudentID) AS StudentCount
+FROM Departments AS d
+LEFT JOIN Courses AS c ON c.DepartmentID = d.DepartmentID
+LEFT JOIN Enrollments AS e ON e.CourseID = c.CourseID
+GROUP BY d.DepartmentID, d.DepartmentName
+ORDER BY d.DepartmentID;
+
+MySQL-style output:
++--------------+-------------------------+--------------+
+| DepartmentID | DepartmentName          | StudentCount |
++--------------+-------------------------+--------------+
+|            1 | Computer Science        |            7 |
+|            2 | Mathematics             |            7 |
+|            3 | Business Administration |            2 |
+|            4 | Physics                 |            0 |
++--------------+-------------------------+--------------+
+4 rows in set (0.009 sec)
+
+=============================================================================
+QUESTION 10: INNER JOIN - STUDENTS AND THEIR COURSES
+=============================================================================
+
+SQL Answer:
+SELECT s.StudentID, s.FirstName, s.LastName, c.CourseID, c.CourseName
+FROM Students AS s
+INNER JOIN Enrollments AS e ON e.StudentID = s.StudentID
+INNER JOIN Courses AS c ON c.CourseID = e.CourseID
+ORDER BY s.StudentID, c.CourseID;
+
+MySQL-style output (first 8 rows shown):
++-----------+-----------+----------+----------+---------------------+
+| StudentID | FirstName | LastName | CourseID | CourseName          |
++-----------+-----------+----------+----------+---------------------+
+|         1 | John      | Doe      |      101 | Introduction to SQL |
+|         1 | John      | Doe      |      102 | Data Structures     |
+|         2 | Jane      | Smith    |      101 | Introduction to SQL |
+|         2 | Jane      | Smith    |      102 | Data Structures     |
+|         3 | Michael   | Brown    |      101 | Introduction to SQL |
+|         3 | Michael   | Brown    |      103 | Database Management |
+|         4 | Emily     | Davis    |      101 | Introduction to SQL |
+|         4 | Emily     | Davis    |      103 | Database Management |
++-----------+-----------+----------+----------+---------------------+
+20 rows in set (first 8 rows displayed here)
+
+=============================================================================
+QUESTION 11: LEFT JOIN - ALL STUDENTS AND THEIR COURSES, IF ANY
+=============================================================================
+
+SQL Answer:
+SELECT s.StudentID, s.FirstName, s.LastName, c.CourseName
+FROM Students AS s
+LEFT JOIN Enrollments AS e ON e.StudentID = s.StudentID
+LEFT JOIN Courses AS c ON c.CourseID = e.CourseID
+ORDER BY s.StudentID, c.CourseID;
+
+MySQL-style output (first 8 rows shown):
++-----------+-----------+----------+---------------------+
+| StudentID | FirstName | LastName | CourseName          |
++-----------+-----------+----------+---------------------+
+|         1 | John      | Doe      | Introduction to SQL |
+|         1 | John      | Doe      | Data Structures     |
+|         2 | Jane      | Smith    | Introduction to SQL |
+|         2 | Jane      | Smith    | Data Structures     |
+|         3 | Michael   | Brown    | Introduction to SQL |
+|         3 | Michael   | Brown    | Database Management |
+|         4 | Emily     | Davis    | Introduction to SQL |
+|         4 | Emily     | Davis    | Database Management |
++-----------+-----------+----------+---------------------+
+20 rows in set (first 8 rows displayed here)
+
+=============================================================================
+QUESTION 12: SUBQUERY - STUDENTS IN COURSES WITH MORE THAN 10
+STUDENTS
+=============================================================================
+
+SQL Answer:
+SELECT DISTINCT s.StudentID, s.FirstName, s.LastName
+FROM Students AS s
+JOIN Enrollments AS e ON e.StudentID = s.StudentID
+WHERE e.CourseID IN (
+    SELECT CourseID
+    FROM Enrollments
+    GROUP BY CourseID
+    HAVING COUNT(DISTINCT StudentID) > 10
+);
+
+MySQL-style output:
+Empty set
+
+Explanation:
+No course has more than 10 enrolled students in the supplied sample data.
+
+=============================================================================
+QUESTION 13: EXTRACT THE YEAR FROM STUDENT ENROLLMENT DATE
+=============================================================================
+
+SQL Answer:
+SELECT StudentID, FirstName, LastName,
+       YEAR(EnrollmentDate) AS EnrollmentYear
+FROM Students
+ORDER BY StudentID;
+
+MySQL-style output:
++-----------+-----------+----------+----------------+
+| StudentID | FirstName | LastName | EnrollmentYear |
++-----------+-----------+----------+----------------+
+|         1 | John      | Doe      |           2022 |
+|         2 | Jane      | Smith    |           2021 |
+|         3 | Michael   | Brown    |           2023 |
+|         4 | Emily     | Davis    |           2020 |
+|         5 | David     | Wilson   |           2024 |
+|         6 | Sarah     | Taylor   |           2022 |
+|         7 | Daniel    | Anderson |           2023 |
+|         8 | Olivia    | Thomas   |           2019 |
+|         9 | James     | Jackson  |           2024 |
+|        10 | Sophia    | White    |           2022 |
+|        11 | Liam      | Harris   |           2021 |
+|        12 | Ava       | Martin   |           2025 |
++-----------+-----------+----------+----------------+
+12 rows in set
+
+=============================================================================
+QUESTION 14: CONCATENATE INSTRUCTOR FIRST AND LAST NAME
+=============================================================================
+
+SQL Answer:
+SELECT InstructorID,
+       CONCAT(FirstName, ' ', LastName) AS InstructorFullName
+FROM Instructors
+ORDER BY InstructorID;
+
+MySQL-style output:
++--------------+--------------------+
+| InstructorID | InstructorFullName |
++--------------+--------------------+
+|            1 | Alice Johnson      |
+|            2 | Bob Lee            |
+|            3 | Carol Williams     |
+|            4 | David Clark        |
+|            5 | Emma Lewis         |
++--------------+--------------------+
+5 rows in set (0.003 sec)
+
+=============================================================================
+QUESTION 15: RUNNING TOTAL OF ENROLLMENTS
+=============================================================================
+
+SQL Answer:
+SELECT EnrollmentID, StudentID, CourseID, EnrollmentDate,
+       COUNT(*) OVER (
+           ORDER BY EnrollmentDate, EnrollmentID
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS RunningTotalEnrollments
+FROM Enrollments
+ORDER BY EnrollmentDate, EnrollmentID;
+
+MySQL-style output (first 8 rows shown):
++--------------+-----------+----------+----------------+------------------------+
+| EnrollmentID | StudentID | CourseID | EnrollmentDate | RunningTotalEnrollments|
++--------------+-----------+----------+----------------+------------------------+
+|            8 |         8 |      105 | 2019-08-01     |                      1 |
+|            4 |         4 |      103 | 2020-07-15     |                      2 |
+|           16 |         4 |      101 | 2020-07-20     |                      3 |
+|           11 |        11 |      104 | 2021-01-10     |                      4 |
+|            2 |         2 |      102 | 2021-08-01     |                      5 |
+|            6 |         6 |      102 | 2022-01-12     |                      6 |
+|           18 |         6 |      104 | 2022-01-15     |                      7 |
+|            1 |         1 |      101 | 2022-08-01     |                      8 |
++--------------+-----------+----------+----------------+------------------------+
+20 rows in set (first 8 rows displayed here)
+
+Note: The result is ordered by EnrollmentDate, then EnrollmentID.
+The full result contains 20 rows.
+
+=============================================================================
+QUESTION 16: LABEL STUDENTS SENIOR OR JUNIOR
+=============================================================================
+
+SQL Answer:
+SELECT StudentID, FirstName, LastName, EnrollmentDate,
+       CASE
+           WHEN EnrollmentDate < DATE_SUB(CURDATE(), INTERVAL 4 YEAR)
+               THEN 'Senior'
+           ELSE 'Junior'
+       END AS StudentLevel
+FROM Students
+ORDER BY StudentID;
+
+MySQL-style output example (if current date is 2026-10-22):
++-----------+-----------+----------+----------------+--------------+
+| StudentID | FirstName | LastName | EnrollmentDate | StudentLevel |
++-----------+-----------+----------+----------------+--------------+
+|         1 | John      | Doe      | 2022-08-01     | Senior       |
+|         2 | Jane      | Smith    | 2021-08-01     | Senior       |
+|         3 | Michael   | Brown    | 2023-01-10     | Junior       |
+|         4 | Emily     | Davis    | 2020-07-15     | Senior       |
+|         5 | David     | Wilson   | 2024-08-01     | Junior       |
+|         6 | Sarah     | Taylor   | 2022-01-12     | Senior       |
+|         7 | Daniel    | Anderson | 2023-08-01     | Junior       |
+|         8 | Olivia    | Thomas   | 2019-08-01     | Senior       |
+|         9 | James     | Jackson  | 2024-01-15     | Junior       |
+|        10 | Sophia    | White    | 2022-08-15     | Senior       |
+|        11 | Liam      | Harris   | 2021-01-10     | Senior       |
+|        12 | Ava       | Martin   | 2025-01-10     | Junior       |
++-----------+-----------+----------+----------------+--------------+
+12 rows in set
+
+=============================================================================
+PROJECT COMPLETION
+=============================================================================
+
+The University Course Management System includes:
+- Five relational tables
+- Primary keys and foreign-key relationships
+- Sample data
+- CRUD operations
+- Filtering, sorting, aggregation and grouping
+- INNER JOIN and LEFT JOIN
+- Subquery
+- Date and string functions
+- Window function for running total
+- CASE expression for Senior/Junior classification
+
+END OF PROJECT
+=============================================================================
